@@ -1,0 +1,91 @@
+---
+title: "Paraguayan  Leather  Export 1994 to 2023"
+author: "Atahualpa Ayala Gomez"
+format: html
+editor: visual
+---
+
+
+```{r}
+library(here)
+library(ggplot2)
+library(tidyverse)
+library(gridExtra)
+```
+The dataset use came from Banco Central del Paraguay, https://www.bcp.gov.py/
+```{r}
+leather <- read.csv(here("Data", "leather_export_py_1994_2023.csv"))
+head(leather)
+leather$date <- ym(paste(leather$year, leather$month, sep= "-"))
+```
+
+
+```{r}
+# calculate ton and value per year
+total_per_year <- leather %>%
+  group_by(year) %>%
+  summarise(total_ton = sum(ton),total_value = sum(value)) 
+
+# create the plot total ton
+total_ton_plot<- ggplot(total_per_year, aes(x = year, y = total_ton)) +
+  geom_point() +
+  geom_line()+
+  geom_vline(xintercept = 2019, linetype = "dashed")+
+  annotate("text", x = 2019, y = max(leather$ton), 
+           label = "Earthsight", vjust = -0.5, hjust = -0.1, size = 3)+
+  labs(title = "Yearly leather export in ton", x = "Year", y = "Tonnes", caption = "Font: BCP 2023")+
+  theme_classic()
+  
+# create the plot total value
+total_value_plot <- ggplot(total_per_year, aes(x = year, y = total_value)) +
+  geom_point() +
+  geom_line()+
+  geom_vline(xintercept = 2019, linetype = "dashed")+
+  annotate("text", x = 2019, y = max(leather$value), 
+           label = "Earthsight", vjust = -1.5, hjust = -0.1, size = 3)+
+  labs(title = "Yearly leather export value ", x = "Year", y = "US$ (millions)", caption = "Font: BCP 2023") +
+  scale_y_continuous(labels = function(x) format(x/1000000, scientific = FALSE)) +
+  theme_classic()
+
+# create the plot volume
+monthly_ton_plot <- ggplot(leather, aes( x = date, y = ton))+
+  geom_point(size = 0.7)+
+  geom_smooth()+
+  geom_vline(xintercept = as.numeric(ym("2020-09")), linetype = "dashed")+
+  annotate("text", x = ym("2020-09"), y = max(leather$ton), 
+           label = "Earthsight", vjust = -0.5, hjust = -0.1, size = 3)+
+  labs(title= "Monthly leather export volume", x = "Year", y = "Tonnes", caption = "Font: BCP 2023")+
+  theme_classic()
+
+# create the plot value
+monthly_value_plot <- ggplot(leather, aes( x = date, y = value))+
+  geom_point( size = 0.7)+
+  geom_smooth()+
+  geom_vline(xintercept = as.numeric(ym("2020-09")), linetype = "dashed")+
+  annotate("text", x = ym("2020-09"), y = max(leather$ton), 
+           label = "Earthsight", vjust = -0.5, hjust = -0.1, size = 3)+
+  labs(title= "Monthly leather export value", x = "Year", y = "Tonnes", caption = "Font: BCP 2023")+
+  theme_classic()
+
+# print plots
+
+ggsave("total_ton_plot.jpg",total_ton_plot, device = "jpg")
+ggsave("total_value_plot.jpg",total_value_plot, device = "jpg")
+ggsave("monthly_ton_plot.jpg",monthly_ton_plot, device = "jpg")
+ggsave("monthly_value_plot.jpg",monthly_value_plot, device = "jpg")
+
+```
+
+```{r}
+ggplot(total_per_year, aes(x = year, y = total_value)) +
+  geom_point() +
+  geom_line() +
+  geom_vline(xintercept = 2019, linetype = "dashed") +
+  annotate("text", x = 2019, y = max(leather$value), 
+           label = "Earthsight", vjust = -1.5, hjust = -0.1, size = 3) +
+  labs(title = "Yearly leather export value", x = "Year", y = "US$ (millions)",
+       caption = "Font: MC 2009") +
+  scale_y_continuous(labels = function(x) format(x/1000000, scientific = FALSE)) +
+  theme_classic()
+```
+
